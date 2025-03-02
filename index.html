@@ -57,17 +57,16 @@
                 return;
             }
 
-            const headers = { "Authorization": "Bearer " + API_TOKEN };
+            const headers = { 
+                "Authorization": "Bearer " + API_TOKEN,
+                "Accept": "application/json"
+            };
 
             try {
                 // Fetch user profile
                 const profileResponse = await fetch(`https://lichess.org/api/user/${username}`, { headers });
+                if (!profileResponse.ok) throw new Error(`Profile fetch failed: ${profileResponse.status}`);
                 const profileData = await profileResponse.json();
-
-                if (profileData.error) {
-                    document.getElementById("output").innerHTML = `<p style="color:red;">Error: ${profileData.error}</p>`;
-                    return;
-                }
 
                 let outputHTML = `
                     <h3>${profileData.username}</h3>
@@ -81,12 +80,15 @@
                     <h4>Recent Games:</h4>
                 `;
 
-                // Fetch recent games
+                // Fetch recent games (NDJSON format)
                 const gamesResponse = await fetch(`https://lichess.org/api/games/user/${username}?max=5&moves=false&evals=false`, { headers });
-                const gamesData = await gamesResponse.json();
+                if (!gamesResponse.ok) throw new Error(`Games fetch failed: ${gamesResponse.status}`);
+                
+                const gamesText = await gamesResponse.text();
+                const gamesArray = gamesText.trim().split("\n").map(line => JSON.parse(line));
 
-                if (gamesData && gamesData.length > 0) {
-                    gamesData.forEach(game => {
+                if (gamesArray.length > 0) {
+                    gamesArray.forEach(game => {
                         let opponent = game.players.white.userId === username ? game.players.black.userId : game.players.white.userId;
                         let result = game.winner ? (game.winner === username ? "✅ Won" : "❌ Lost") : "⚖️ Draw";
                         let link = `https://lichess.org/${game.id}`;
@@ -104,7 +106,7 @@
                 document.getElementById("output").innerHTML = outputHTML;
 
             } catch (error) {
-                document.getElementById("output").innerHTML = `<p style="color:red;">Error fetching data.</p>`;
+                document.getElementById("output").innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
                 console.error(error);
             }
         }
