@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lichess User Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h2 {
+            color: #333;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .game {
+            margin-top: 10px;
+            padding: 10px;
+            background: #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Lichess User Tool</h2>
+    <p>Enter your Lichess username to fetch your data:</p>
+    
+    <input type="text" id="username" placeholder="Lichess Username">
+    <button onclick="fetchUserData()">Get Profile</button>
+
+    <div id="output"></div>
+
+    <script>
+        const API_TOKEN = "lip_tMgWHTh1BZ8ZOo2eErre"; // Replace with your API key
+
+        async function fetchUserData() {
+            const username = document.getElementById("username").value.trim();
+            if (!username) {
+                alert("Please enter your username.");
+                return;
+            }
+
+            const headers = { "Authorization": "Bearer " + API_TOKEN };
+
+            try {
+                // Fetch user profile
+                const profileResponse = await fetch(`https://lichess.org/api/user/${username}`, { headers });
+                const profileData = await profileResponse.json();
+
+                if (profileData.error) {
+                    document.getElementById("output").innerHTML = `<p style="color:red;">Error: ${profileData.error}</p>`;
+                    return;
+                }
+
+                let outputHTML = `
+                    <h3>${profileData.username} (Blitz Rating: ${profileData.perfs?.blitz?.rating || "N/A"})</h3>
+                    <p>Games Played: ${profileData.count?.all || 0}</p>
+                    <p>Online Status: ${profileData.online ? "Online" : "Offline"}</p>
+                    <h4>Recent Games:</h4>
+                `;
+
+                // Fetch recent games
+                const gamesResponse = await fetch(`https://lichess.org/api/games/user/${username}?max=5`, { headers });
+                const gamesData = await gamesResponse.text();
+
+                const games = gamesData.split("\n").filter(game => game.trim());
+                games.forEach(game => {
+                    const link = `https://lichess.org/${game.split(" ")[0]}`;
+                    outputHTML += `<div class="game"><a href="${link}" target="_blank">${link}</a></div>`;
+                });
+
+                document.getElementById("output").innerHTML = outputHTML;
+
+            } catch (error) {
+                document.getElementById("output").innerHTML = `<p style="color:red;">Error fetching data.</p>`;
+                console.error(error);
+            }
+        }
+    </script>
+
+</body>
+</html>
