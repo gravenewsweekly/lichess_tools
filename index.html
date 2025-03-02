@@ -25,6 +25,9 @@
             background: white;
             border-radius: 5px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+            max-width: 600px;
+            margin: auto;
         }
         .game {
             margin-top: 10px;
@@ -45,7 +48,7 @@
     <div id="output"></div>
 
     <script>
-        const API_TOKEN = "lip_38GJIKKF3vhfOoZTlRvA"; // Replace with your API key
+        const API_TOKEN = "lip_BxMYouPMedbHBdLRdI8m"; // Replace with your API key
 
         async function fetchUserData() {
             const username = document.getElementById("username").value.trim();
@@ -67,21 +70,35 @@
                 }
 
                 let outputHTML = `
-                    <h3>${profileData.username} (Blitz Rating: ${profileData.perfs?.blitz?.rating || "N/A"})</h3>
-                    <p>Games Played: ${profileData.count?.all || 0}</p>
-                    <p>Online Status: ${profileData.online ? "Online" : "Offline"}</p>
+                    <h3>${profileData.username}</h3>
+                    <p><strong>Blitz Rating:</strong> ${profileData.perfs?.blitz?.rating || "N/A"}</p>
+                    <p><strong>Rapid Rating:</strong> ${profileData.perfs?.rapid?.rating || "N/A"}</p>
+                    <p><strong>Classical Rating:</strong> ${profileData.perfs?.classical?.rating || "N/A"}</p>
+                    <p><strong>Games Played:</strong> ${profileData.count?.all || 0}</p>
+                    <p><strong>Followers:</strong> ${profileData.nbFollowers || 0}</p>
+                    <p><strong>Online Status:</strong> ${profileData.online ? "🟢 Online" : "🔴 Offline"}</p>
                     <h4>Recent Games:</h4>
                 `;
 
                 // Fetch recent games
-                const gamesResponse = await fetch(`https://lishogi.org/api/games/user/${username}?max=5`, { headers });
-                const gamesData = await gamesResponse.text();
+                const gamesResponse = await fetch(`https://lishogi.org/api/games/user/${username}?max=5&moves=false&evals=false`, { headers });
+                const gamesData = await gamesResponse.json();
 
-                const games = gamesData.split("\n").filter(game => game.trim());
-                games.forEach(game => {
-                    const link = `https://lishogi.org/${game.split(" ")[0]}`;
-                    outputHTML += `<div class="game"><a href="${link}" target="_blank">${link}</a></div>`;
-                });
+                if (gamesData && gamesData.length > 0) {
+                    gamesData.forEach(game => {
+                        let opponent = game.players.white.userId === username ? game.players.black.userId : game.players.white.userId;
+                        let result = game.winner ? (game.winner === username ? "✅ Won" : "❌ Lost") : "⚖️ Draw";
+                        let link = `https://lishogi.org/${game.id}`;
+                        
+                        outputHTML += `<div class="game">
+                            <p><strong>Opponent:</strong> ${opponent}</p>
+                            <p><strong>Result:</strong> ${result}</p>
+                            <a href="${link}" target="_blank">View Game</a>
+                        </div>`;
+                    });
+                } else {
+                    outputHTML += `<p>No recent games found.</p>`;
+                }
 
                 document.getElementById("output").innerHTML = outputHTML;
 
