@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lichess User Tool</title>
+    <title>Lishogi User Tool</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -36,16 +36,16 @@
 </head>
 <body>
 
-    <h2>Lichess User Tool</h2>
-    <p>Enter your Lichess username to fetch your data:</p>
+    <h2>Lishogi User Tool</h2>
+    <p>Enter your Lishogi username to fetch your data:</p>
     
-    <input type="text" id="username" placeholder="Lichess Username">
+    <input type="text" id="username" placeholder="Lishogi Username">
     <button onclick="fetchUserData()">Get Profile</button>
 
     <div id="output"></div>
 
     <script>
-        const API_TOKEN = "lip_tMgWHTh1BZ8ZOo2eErre"; // Replace with your API key
+        const API_TOKEN = "lip_38GJIKKF3vhfOoZTlRvA"; // Replace with your API key
 
         async function fetchUserData() {
             const username = document.getElementById("username").value.trim();
@@ -58,7 +58,7 @@
 
             try {
                 // Fetch user profile
-                const profileResponse = await fetch(`https://lichess.org/api/user/${username}`, { headers });
+                const profileResponse = await fetch(`https://lishogi.org/api/user/${username}`, { headers });
                 const profileData = await profileResponse.json();
 
                 if (profileData.error) {
@@ -74,12 +74,12 @@
                 `;
 
                 // Fetch recent games
-                const gamesResponse = await fetch(`https://lichess.org/api/games/user/${username}?max=5`, { headers });
+                const gamesResponse = await fetch(`https://lishogi.org/api/games/user/${username}?max=5`, { headers });
                 const gamesData = await gamesResponse.text();
 
                 const games = gamesData.split("\n").filter(game => game.trim());
                 games.forEach(game => {
-                    const link = `https://lichess.org/${game.split(" ")[0]}`;
+                    const link = `https://lishogi.org/${game.split(" ")[0]}`;
                     outputHTML += `<div class="game"><a href="${link}" target="_blank">${link}</a></div>`;
                 });
 
