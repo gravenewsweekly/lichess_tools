@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lishogi User Tool</title>
+    <title>Lichess User Tool</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,16 +39,16 @@
 </head>
 <body>
 
-    <h2>Lishogi User Tool</h2>
-    <p>Enter your Lishogi username to fetch your data:</p>
+    <h2>Lichess User Tool</h2>
+    <p>Enter your Lichess username to fetch your data:</p>
     
-    <input type="text" id="username" placeholder="Lishogi Username">
+    <input type="text" id="username" placeholder="Lichess Username">
     <button onclick="fetchUserData()">Get Profile</button>
 
     <div id="output"></div>
 
     <script>
-        const API_TOKEN = "lip_BxMYouPMedbHBdLRdI8m"; // Replace with your API key
+        const API_TOKEN = "IA4TL3jDarxFiv5A"; // Your Lichess API Token
 
         async function fetchUserData() {
             const username = document.getElementById("username").value.trim();
@@ -61,7 +61,7 @@
 
             try {
                 // Fetch user profile
-                const profileResponse = await fetch(`https://lishogi.org/api/user/${username}`, { headers });
+                const profileResponse = await fetch(`https://lichess.org/api/user/${username}`, { headers });
                 const profileData = await profileResponse.json();
 
                 if (profileData.error) {
@@ -71,6 +71,7 @@
 
                 let outputHTML = `
                     <h3>${profileData.username}</h3>
+                    <p><strong>Bullet Rating:</strong> ${profileData.perfs?.bullet?.rating || "N/A"}</p>
                     <p><strong>Blitz Rating:</strong> ${profileData.perfs?.blitz?.rating || "N/A"}</p>
                     <p><strong>Rapid Rating:</strong> ${profileData.perfs?.rapid?.rating || "N/A"}</p>
                     <p><strong>Classical Rating:</strong> ${profileData.perfs?.classical?.rating || "N/A"}</p>
@@ -81,14 +82,14 @@
                 `;
 
                 // Fetch recent games
-                const gamesResponse = await fetch(`https://lishogi.org/api/games/user/${username}?max=5&moves=false&evals=false`, { headers });
+                const gamesResponse = await fetch(`https://lichess.org/api/games/user/${username}?max=5&moves=false&evals=false`, { headers });
                 const gamesData = await gamesResponse.json();
 
                 if (gamesData && gamesData.length > 0) {
                     gamesData.forEach(game => {
                         let opponent = game.players.white.userId === username ? game.players.black.userId : game.players.white.userId;
                         let result = game.winner ? (game.winner === username ? "✅ Won" : "❌ Lost") : "⚖️ Draw";
-                        let link = `https://lishogi.org/${game.id}`;
+                        let link = `https://lichess.org/${game.id}`;
                         
                         outputHTML += `<div class="game">
                             <p><strong>Opponent:</strong> ${opponent}</p>
