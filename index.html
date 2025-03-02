@@ -5,109 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lichess User Tool</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        h2 {
-            color: #333;
-        }
-        input, button {
-            margin: 10px;
-            padding: 10px;
-            font-size: 16px;
-        }
-        #output {
-            margin-top: 20px;
-            padding: 15px;
-            background: white;
-            border-radius: 5px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            text-align: left;
-            max-width: 600px;
-            margin: auto;
-        }
-        .game {
-            margin-top: 10px;
-            padding: 10px;
-            background: #ddd;
-            border-radius: 5px;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        input { padding: 8px; margin: 10px; width: 250px; }
+        button { padding: 10px; background-color: #008CBA; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #005f73; }
+        #output { margin-top: 20px; padding: 10px; border: 1px solid #ddd; display: inline-block; text-align: left; }
     </style>
 </head>
 <body>
 
     <h2>Lichess User Tool</h2>
-    <p>Enter your Lichess username to fetch your data:</p>
-    
-    <input type="text" id="username" placeholder="Lichess Username">
-    <button onclick="fetchUserData()">Get Profile</button>
+    <input type="text" id="apiKey" placeholder="<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lichess User Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        input { padding: 8px; margin: 10px; width: 250px; }
+        button { padding: 10px; background-color: #008CBA; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #005f73; }
+        #output { margin-top: 20px; padding: 10px; border: 1px solid #ddd; display: inline-block; text-align: left; }
+    </style>
+</head>
+<body>
+
+    <h2>Lichess User Tool</h2>
+    <input type="text" id="apiKey" placeholder="lip_RVoCAAW7SnMuQk4D7uea">
+    <button onclick="fetchLichessData()">Fetch Profile</button>
 
     <div id="output"></div>
 
     <script>
-        const API_TOKEN = "IA4TL3jDarxFiv5A"; // Your Lichess API Token
-
-        async function fetchUserData() {
-            const username = document.getElementById("username").value.trim();
-            if (!username) {
-                alert("Please enter your username.");
+        async function fetchLichessData() {
+            let apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey) {
+                alert("Please enter a valid API key.");
                 return;
             }
 
-            const headers = { 
-                "Authorization": "Bearer " + API_TOKEN,
-                "Accept": "application/json"
-            };
-
             try {
-                // Fetch user profile
-                const profileResponse = await fetch(`https://lichess.org/api/user/${username}`, { headers });
-                if (!profileResponse.ok) throw new Error(`Profile fetch failed: ${profileResponse.status}`);
-                const profileData = await profileResponse.json();
+                let response = await fetch("https://lichess.org/api/account", {
+                    headers: { "Authorization": `Bearer ${apiKey}` }
+                });
 
-                let outputHTML = `
-                    <h3>${profileData.username}</h3>
-                    <p><strong>Bullet Rating:</strong> ${profileData.perfs?.bullet?.rating || "N/A"}</p>
-                    <p><strong>Blitz Rating:</strong> ${profileData.perfs?.blitz?.rating || "N/A"}</p>
-                    <p><strong>Rapid Rating:</strong> ${profileData.perfs?.rapid?.rating || "N/A"}</p>
-                    <p><strong>Classical Rating:</strong> ${profileData.perfs?.classical?.rating || "N/A"}</p>
-                    <p><strong>Games Played:</strong> ${profileData.count?.all || 0}</p>
-                    <p><strong>Followers:</strong> ${profileData.nbFollowers || 0}</p>
-                    <p><strong>Online Status:</strong> ${profileData.online ? "🟢 Online" : "🔴 Offline"}</p>
-                    <h4>Recent Games:</h4>
-                `;
-
-                // Fetch recent games (NDJSON format)
-                const gamesResponse = await fetch(`https://lichess.org/api/games/user/${username}?max=5&moves=false&evals=false`, { headers });
-                if (!gamesResponse.ok) throw new Error(`Games fetch failed: ${gamesResponse.status}`);
-                
-                const gamesText = await gamesResponse.text();
-                const gamesArray = gamesText.trim().split("\n").map(line => JSON.parse(line));
-
-                if (gamesArray.length > 0) {
-                    gamesArray.forEach(game => {
-                        let opponent = game.players.white.userId === username ? game.players.black.userId : game.players.white.userId;
-                        let result = game.winner ? (game.winner === username ? "✅ Won" : "❌ Lost") : "⚖️ Draw";
-                        let link = `https://lichess.org/${game.id}`;
-                        
-                        outputHTML += `<div class="game">
-                            <p><strong>Opponent:</strong> ${opponent}</p>
-                            <p><strong>Result:</strong> ${result}</p>
-                            <a href="${link}" target="_blank">View Game</a>
-                        </div>`;
-                    });
-                } else {
-                    outputHTML += `<p>No recent games found.</p>`;
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
                 }
 
-                document.getElementById("output").innerHTML = outputHTML;
+                let data = await response.json();
+                document.getElementById("output").innerHTML = `
+                    <strong>Username:</strong> ${data.username} <br>
+                    <strong>Rating:</strong> ${data.perfs?.blitz?.rating || "N/A"} (Blitz) <br>
+                    <strong>Games Played:</strong> ${data.count?.all || "N/A"} <br>
+                    <strong>Title:</strong> ${data.title || "None"} <br>
+                    <strong>Online:</strong> ${data.online ? "Yes" : "No"}
+                `;
 
             } catch (error) {
-                document.getElementById("output").innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
-                console.error(error);
+                document.getElementById("output").innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+    </script>
+
+</body>
+</html> ">
+    <button onclick="fetchLichessData()">Fetch Profile</button>
+
+    <div id="output"></div>
+
+    <script>
+        async function fetchLichessData() {
+            let apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey) {
+                alert("Please enter a valid API key.");
+                return;
+            }
+
+            try {
+                let response = await fetch("https://lichess.org/api/account", {
+                    headers: { "Authorization": `Bearer ${apiKey}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+
+                let data = await response.json();
+                document.getElementById("output").innerHTML = `
+                    <strong>Username:</strong> ${data.username} <br>
+                    <strong>Rating:</strong> ${data.perfs?.blitz?.rating || "N/A"} (Blitz) <br>
+                    <strong>Games Played:</strong> ${data.count?.all || "N/A"} <br>
+                    <strong>Title:</strong> ${data.title || "None"} <br>
+                    <strong>Online:</strong> ${data.online ? "Yes" : "No"}
+                `;
+
+            } catch (error) {
+                document.getElementById("output").innerHTML = `<strong>Error:</strong> ${error.message}`;
             }
         }
     </script>
